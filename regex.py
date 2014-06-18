@@ -1,22 +1,13 @@
 #!/usr/bin/env python
+from metachars import Metachars as M
 
-# Metacharacters. Lower numbers mean lower precedence.
-metachars = {'|':0, # union
-             '&':1, # concatenation
-             # escaped metacharacters go here (same as ampersand)
-             '*':2, # match 0 or more times 
-             '+':2, # match 1 or more times
-             '?':2, # match 0 or 1 times
-             '(':3, ')':3, # parens
-             '\\':4, # escape...want to use this?
-             }
+# references: http://csis.pace.edu/~wolf/CS122/infix-postfix.htm
 
 """
 TODO:
 - TEST EVERYTHING
 - is anything ever right-to-left associative?
 """
-
 
 def make_concatenation_explicit(regex):
     # make ampersands explicit for convenience
@@ -25,14 +16,13 @@ def make_concatenation_explicit(regex):
         prev = regex[i-1]
         curr = regex[i]
         # if prev and curr are both operands
-        if prev not in metachars.keys() and curr not in metachars.keys():
+        if prev not in M.metachars.keys() and curr not in M.metachars.keys():
             explicit += '&'
-        # if prev is a * or ) and curr is ( or operand
-        elif prev in ['*',')'] and (curr=='(' or curr not in metachars.keys()):
+        # if prev is a * or ) and curr is ( or operansdfd
+        elif prev in ['*',')'] and (curr=='(' or curr not in M.metachars.keys()):
             explicit += '&'
         explicit += curr
     return regex[0] + explicit
-
 
 
 def infix_to_postfix(regex, verbose=False):
@@ -48,7 +38,7 @@ def infix_to_postfix(regex, verbose=False):
             print "stack:", symbols
             print "output:", postfix
         # print operands as they arrive
-        if c not in metachars.keys():
+        if c not in M.metachars.keys():
             if verbose: print c,"is an operand"
             postfix += c
         # if stack empty or has left paren on top, push
@@ -68,18 +58,18 @@ def infix_to_postfix(regex, verbose=False):
                 out = symbols.pop()
                 # throw an error if run out before encountering left paren?
         # if symbol has higher precedence than top of stack, push
-        elif metachars[c] > metachars[symbols[-1]]:
+        elif M.metachars[c] > M.metachars[symbols[-1]]:
             if verbose: print "putting",c,"on stack because high precedence"
             symbols.append(c)
         # if equal precedence, use associativity
-        elif metachars[c] == metachars[symbols[-1]]:
+        elif M.metachars[c] == M.metachars[symbols[-1]]:
             postfix += symbols.pop()
             if verbose:
                 print "printing",postfix[-1],"because equal precedence"
                 print "putting",c,"on stack because equal precedence"
             symbols.append(c)
         # if lower precedence, print top operator on stack and try again
-        elif metachars[c] < metachars[symbols[-1]]:
+        elif M.metachars[c] < M.metachars[symbols[-1]]:
             postfix += symbols.pop()
             if verbose:
                 print "printing", postfix[-1],"because",c,"is lower precedence"
