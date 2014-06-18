@@ -211,8 +211,8 @@ class NFA:
             if lbl != None: elabels[(p,s)] = r'$'+lbl+'$'
             else: elabels[(p,s)] = r'$\epsilon$'
         layout = nx.graphviz_layout(self.G)
-        nx.draw_networkx(self.G, with_labels=False, pos=layout,
-                         node_color=ncolors)
+        nx.draw_networkx(self.G, #with_labels=False, 
+                         pos=layout, node_color=ncolors)
         nx.draw_networkx_edge_labels(self.G, pos=layout, edge_labels=elabels,
                                      font_size=20)
         plt.show()
@@ -273,8 +273,46 @@ class NFA:
         # kill the dead ends
         self.G.remove_nodes_from(dead_ends)
                         
-                
-            
+    def simulate(self, string):
+        # simulate this NFA on a given string
+        # list of occupied states - initially list of start states
+        occ = set([n for n in self.G if self.G.node[n]['start']])
+        # do initial expansion over empty transitions
+        occ |= self.take_empty_transitions(occ)
+        # iterate over characters in string
+        for c in string:
+            # follow non-empty transitions
+            occ = self.take_symbol_transitions(occ, c)
+            # follow empty transitions (repeat until no change)
+            occ |= self.take_empty_transitions(occ)
+        # check to see if currently in any accept state
+        print [m for m in self.G if self.G.node[m]['accept']]
+        for n in [m for m in self.G if self.G.node[m]['accept']]:
+            if n in occ: return True
+        return False
+
+    def take_empty_transitions(self, occupied):
+        # take all epsilon transitions, return new states
+        new_occ = set()
+        old_len = -1
+        while old_len != len(occupied):
+            old_len = len(occupied)
+            for n1 in occupied:
+                succ = self.G.successors(n1)
+                new_occ |= set([n2 for n2 in succ 
+                                if not self.G[n1][n2]['label']])
+            # update occ
+            occupied |= new_occ
+        return occupied
+
+    def take_symbol_transitions(self, occupied, symbol):
+        # take all relevant symbol transitions, return new states
+        new_occ = set()
+        for n1 in occupied:
+            succ = self.G.successors(n1)
+            new_occ |= set([n2 for n2 in succ 
+                            if self.G[n1][n2]['label'] == symbol])
+        return new_occ
 
 if __name__=='__main__':
     a = NFA('a')
