@@ -29,6 +29,9 @@ def infix_to_postfix(regex, verbose=False):
     # Convert passed infix-notation regular expression to postfix notation
     symbols = []
     postfix = ""
+
+    # insert ampersands so postfix doesn't get confused
+    regex = make_concatenation_explicit(regex)
     
     i=0
     while i < len(regex): # use while so can try again if need to
@@ -92,8 +95,9 @@ def infix_to_postfix(regex, verbose=False):
 
 if __name__=="__main__":
     regex = "((a|b)*aba*)*(a|b)(a|b)"
-    exp = make_concatenation_explicit(regex)
-    post = infix_to_postfix(exp)
+    #exp = make_concatenation_explicit(regex)
+    #post = infix_to_postfix(exp)
+    post = infix_to_postfix(regex)
     print post
     test = "ab|*a&b&a*&*ab|&ab|&"
     if post == test:
