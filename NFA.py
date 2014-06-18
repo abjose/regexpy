@@ -11,6 +11,9 @@ An NFA consists of:
 - A transition relation R in Q x E x Q
 - A start state q_0 in Q
 - A set of accepting states F
+
+http://swtch.com/~rsc/regexp/regexp1.html
+http://perl.plover.com/Regex/article.html
 """
 
 """
