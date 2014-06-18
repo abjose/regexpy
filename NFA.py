@@ -215,8 +215,31 @@ class NFA:
                          node_color=ncolors)
         nx.draw_networkx_edge_labels(self.G, pos=layout, edge_labels=elabels,
                                      font_size=20)
-        #plt.draw()
         plt.show()
+
+    def remove_extra_epsilons(self, ):
+        # remove repeated empty transitions
+        # find patterns like A-e->B-e->C
+        pairs = []
+        for n in self.G:
+            # get all empty edges connected to node n
+            # only use pair if one is incoming and one is outgoing
+            empty_in  = [(u,v) for u,v in self.G.in_edges() 
+                         if not self.G[u][v][label]]
+            empty_out = [(u,v) for u,v in self.G.out_edges() 
+                         if not self.G[u][v][label]]
+            # get all non-equal pairs
+            pairs += [(i,o) for i in empty_in for o in empty_out]
+        # for all triples, if they still exist, try a contraction
+        for (i1, o1),(i2,o2) in pairs:
+            # make a new empty edge
+            # o1 and i2 are the same, i1 is pred, o2 is succ
+            self.G.add_edge(i1, o2, label=None)
+            # if middle node has no other edges, remove
+            if self.G.degree(o1) == 2: self.G.remove_node(o1)
+            # otherwise just remove the edges
+            else: self.G.remove_edges_from([(i1,o1), (i2,o2)])
+            
 
 if __name__=='__main__':
     a = NFA('a')
