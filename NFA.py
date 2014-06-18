@@ -218,27 +218,62 @@ class NFA:
         plt.show()
 
     def remove_extra_epsilons(self, ):
+        while self.remove_extra_epsilons_step(): 
+            print 'removing empty edges'
+            #self.display()
+
+    def remove_extra_epsilons_step(self, ):
         # remove repeated empty transitions
         # find patterns like A-e->B-e->C
-        pairs = []
+        removed = False
+        triples = []
         for n in self.G:
             # get all empty edges connected to node n
             # only use pair if one is incoming and one is outgoing
-            empty_in  = [(u,v) for u,v in self.G.in_edges() 
-                         if not self.G[u][v][label]]
-            empty_out = [(u,v) for u,v in self.G.out_edges() 
-                         if not self.G[u][v][label]]
-            # get all non-equal pairs
-            pairs += [(i,o) for i in empty_in for o in empty_out]
+            empty_in  = [(u,v) for u,v in self.G.in_edges(n) 
+                         if not self.G[u][v]['label'] and u != v]
+            empty_out = [(u,v) for u,v in self.G.out_edges(n) 
+                         if not self.G[u][v]['label'] and u != v]
+            # get all non-equal pairs (just in case self-loops)
+            triples += [(a,b,c) for (a,b) in empty_in for (_,c) in empty_out
+                       ]# if a != c] # NEED THIS LAST CLAUSE?
+
         # for all triples, if they still exist, try a contraction
-        for (i1, o1),(i2,o2) in pairs:
+        for (a,b,c) in triples:
+            # verify that this edge hasn't been screwed up
+            if not (a in self.G and b in self.G and c in self.G): continue
+            if not (self.G.has_edge(a,b) and self.G.has_edge(b,c)): continue
             # make a new empty edge
-            # o1 and i2 are the same, i1 is pred, o2 is succ
-            self.G.add_edge(i1, o2, label=None)
-            # if middle node has no other edges, remove
-            if self.G.degree(o1) == 2: self.G.remove_node(o1)
-            # otherwise just remove the edges
-            else: self.G.remove_edges_from([(i1,o1), (i2,o2)])
+            self.G.add_edge(a,c, label=None)            
+            # copy all data from middle node to first node
+            self.G.node[a]['start']  |= self.G.node[b]['start']
+            self.G.node[a]['accept'] |= self.G.node[b]['accept']
+            for (other,_) in self.G.in_edges(b):
+                self.G.add_edge(other,a, label=self.G[other][b]['label'])
+            for (_,other) in self.G.out_edges(b):
+                self.G.add_edge(a,other, label=self.G[b][other]['label'])
+            self.G.remove_node(b)
+            removed = True
+
+        return removed
+
+    def remove_dead_ends(self, ):
+        # remove non-accept states with only incoming edges
+        dead_ends = []
+        for n in self.G:
+            if len(self.G.out_edges(n)) == 0:
+                dead_end = True
+                for u,v in self.G.in_edges(n):
+                    if self.G[u][v]['label']:
+                        dead_end = False
+                        break
+                if dead_end:
+                    print 'removing a dead end'
+                    dead_ends.append(n)
+        # kill the dead ends
+        self.G.remove_nodes_from(dead_ends)
+                        
+                
             
 
 if __name__=='__main__':
