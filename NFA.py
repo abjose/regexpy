@@ -262,15 +262,13 @@ class NFA:
         dead_ends = []
         for n in self.G:
             if len(self.G.out_edges(n)) == 0:
-                dead_end = True
-                for u,v in self.G.in_edges(n):
-                    if self.G[u][v]['label']:
-                        dead_end = False
-                        break
-                if dead_end:
-                    print 'removing a dead end'
-                    dead_ends.append(n)
-        # kill the dead ends
+                if not (self.G.node[n]['start'] or self.G.node[n]['accept']):
+                    if all([not self.G[u][v]['label'] 
+                            for u,v in self.G.in_edges(n)]):
+                        # dead end, remove it
+                        print "removing dead end"
+                        dead_ends.append(n)
+        # remove dead ends
         self.G.remove_nodes_from(dead_ends)
                         
     def simulate(self, string):
@@ -286,7 +284,6 @@ class NFA:
             # follow empty transitions (repeat until no change)
             occ |= self.take_empty_transitions(occ)
         # check to see if currently in any accept state
-        print [m for m in self.G if self.G.node[m]['accept']]
         for n in [m for m in self.G if self.G.node[m]['accept']]:
             if n in occ: return True
         return False
