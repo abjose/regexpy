@@ -47,4 +47,12 @@ def regex_to_NFA(regex):
 
 if __name__=='__main__':
     test = "((a|b)*aba*)*(a|b)(a|b)"
-    regex_to_NFA(test).display()
+    #test = 'abc'
+    nfa = regex_to_NFA(test)
+    #nfa.display()
+    nfa.remove_extra_epsilons()
+    #nfa.display()
+    nfa.remove_dead_ends()
+    #nfa.display()
+    print nfa.simulate('bbabaaaa')
+    nfa.display()
