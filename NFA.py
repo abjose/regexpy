@@ -1,7 +1,7 @@
 #!/usr/bin/env python
+from metachars import Metachars as M
 import matplotlib.pyplot as plt
 import networkx as nx
-from metachars import Metachars as M
 import uuid
 
 """
@@ -19,10 +19,8 @@ http://perl.plover.com/Regex/article.html
 """
 TODO:
 - Could also attempt to make a NFA to DFA converter here
-- Also maybe something to trim useless states like from that one article
 - Add a function like "unmark_accept_states"...could include an exception list
 - add a copy function that makes new UIDs but preserves data
-- lots of repeated epsilon edges - problem? could just trim...
 """
 
 def uid():
@@ -46,12 +44,9 @@ class NFA:
             self.make_character(symbol, nfa_list)
         elif symbol in self.func_mapping.keys():
             self.func_mapping[symbol](symbol, nfa_list)
-        # SHOULD MAKE SYMBOSL AND STUFF FROM regex file available everywhere...
-        # just put in a third file and import it I guess
     
     def get_start_states(self, num_expected=None):
         # probably better way to do this...
-        #print self.G.nodes(data=True)
         nodes = [g for g,d in self.G.nodes(data=True) if d['start']]
         if num_expected: assert(len(nodes) == num_expected)
         return nodes
@@ -152,9 +147,7 @@ class NFA:
         assert(len(nfa_list) == 1)
         nfa = nfa_list[0]
         # new start and accpt states, with addition of an intermediate state
-        #new_start, new_accept, intermediate = uid(), uid(), uid()
         new_accept, intermediate = uid(), uid()
-        #self.G.add_node(new_start, start=True, accept=False)
         self.G.add_node(new_accept, start=False, accept=True)
         self.G.add_node(intermediate, start=False, accept=False)
         # add transition to accept state from intermediate
@@ -194,7 +187,7 @@ class NFA:
             self.G.add_edge(n, new_accept, label=None)
             self.G.node[n]['accept'] = False
         
-    def display(self):
+    def display(self, title=None):
         # should hide names but show start and accept nodes differently
         # also show edge labels
         ncolors = []
@@ -211,10 +204,11 @@ class NFA:
             if lbl != None: elabels[(p,s)] = r'$'+lbl+'$'
             else: elabels[(p,s)] = r'$\epsilon$'
         layout = nx.graphviz_layout(self.G)
-        nx.draw_networkx(self.G, #with_labels=False, 
+        nx.draw_networkx(self.G, with_labels=False,
                          pos=layout, node_color=ncolors)
         nx.draw_networkx_edge_labels(self.G, pos=layout, edge_labels=elabels,
                                      font_size=20)
+        if title: plt.title(title)
         plt.show()
 
     def remove_extra_epsilons(self, ):
@@ -313,13 +307,22 @@ class NFA:
 
 if __name__=='__main__':
     a = NFA('a')
+    #a.display(title='a')
     b = NFA('b')
+    #b.display(title='b')
     c = NFA('c')
+    c.display(title='c')
     c_kleene = NFA('*', c)
+    c_kleene.display('c*')
     c_plus = NFA('+', c)
+    c_plus.display('c+')
     c_question = NFA('?', c)
+    c_question.display('c?')
     a_or_b = NFA('|', a, b)
+    a_or_b.display('a|b')
     a_or_b_and_c = NFA('&', a_or_b, c)
+    a_or_b_and_c.display('(a|b)c')
     a_or_b_and_c_kleene = NFA('*', a_or_b_and_c)
+    a_or_b_and_c_kleene.display('((a|b)c)*')
     a_or_b_and_c_plus = NFA('+', a_or_b_and_c)
-    a_or_b_and_c_plus.display()
+    a_or_b_and_c_plus.display('((a|b)c)+')

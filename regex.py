@@ -97,6 +97,7 @@ if __name__=="__main__":
     regex = "((a|b)*aba*)*(a|b)(a|b)"
     #exp = make_concatenation_explicit(regex)
     #post = infix_to_postfix(exp)
+    print regex
     post = infix_to_postfix(regex)
     print post
     test = "ab|*a&b&a*&*ab|&ab|&"
